@@ -1,6 +1,6 @@
 {
   "name": "vex2-dialog",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A vex2 plugin for drop-in alert, confirm, and prompt dialogs",
   "author": "Brendan Batliner <brendan@omnipointment.com>",
   "license": "MIT",
@@ -22,6 +22,8 @@
     "test": "standard"
   },
   "standard": {
-    "ignore": ["/dist"]
+    "ignore": [
+      "/dist"
+    ]
   }
 }
