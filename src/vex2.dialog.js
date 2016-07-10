@@ -33,8 +33,6 @@ var buildDialogForm = function (options) {
 
   form.appendChild(message)
   form.appendChild(input)
-  form.appendChild(buttonsToDOM.call(this, options.buttons))
-  form.addEventListener('submit', options.onSubmit.bind(this))
 
   return form
 }
@@ -70,35 +68,47 @@ var buttonsToDOM = function (buttons) {
   return domButtons
 }
 
-var Dialog = function (vex) {
-  // Dialog plugin
+var dialog = function (vex) {
+  // dialog plugin
   return {
     // Open
     open: function (opts) {
-      var options = Object.assign({}, Dialog.defaultOptions, opts)
+      var options = Object.assign({}, dialog.defaultOptions, opts)
 
       // Build the form from the options
-      this.form = options.content = buildDialogForm.call(this, options)
+      var form = options.content = buildDialogForm(options)
+
+      // Open the dialog
+      var dialogInstance = vex.open(options)
 
       // Override the before close callback to also pass the value of the form
       var beforeClose = options.beforeClose
-      options.beforeClose = function () {
+      dialogInstance.options.beforeClose = function () {
         options.callback(this.value || false)
         if (beforeClose) {
           beforeClose.call(this)
         }
-      }.bind(this)
+      }.bind(dialogInstance)
 
-      // Open the dialog
-      var dialog = vex.open(options)
+      // Append buttons to form with correct context
+      form.appendChild(buttonsToDOM.call(dialogInstance, options.buttons))
+
+      // Attach form to instance
+      dialogInstance.form = form
+
+      // Add submit listener to form
+      form.addEventListener('submit', options.onSubmit.bind(dialogInstance))
 
       // Optionally focus the first input in the form
       if (options.focusFirstInput) {
-        dialog.contentEl.querySelector('button, input, textarea').focus()
+        var el = dialogInstance.contentEl.querySelector('button, input, textarea')
+        if (el) {
+          el.focus()
+        }
       }
 
       // For chaining
-      return dialog
+      return dialogInstance
     },
 
     // Alert
@@ -108,25 +118,25 @@ var Dialog = function (vex) {
           message: options
         }
       }
-      options = Object.assign({}, Dialog.defaultOptions, Dialog.defaultAlertOptions, options)
+      options = Object.assign({}, dialog.defaultOptions, dialog.defaultAlertOptions, options)
       return this.open(options)
     },
 
     // Confirm
     confirm: function (options) {
       if (typeof options === 'string') {
-        throw new Error('Dialog.confirm(options) requires options.callback.')
+        throw new Error('dialog.confirm(options) requires options.callback.')
       }
-      options = Object.assign({}, Dialog.defaultOptions, Dialog.defaultConfirmOptions, options)
+      options = Object.assign({}, dialog.defaultOptions, dialog.defaultConfirmOptions, options)
       return this.open(options)
     },
 
     // Prompt
     prompt: function (options) {
       if (typeof options === 'string') {
-        throw new Error('Dialog.prompt(options) requires options.callback.')
+        throw new Error('dialog.prompt(options) requires options.callback.')
       }
-      options = Object.assign({}, Dialog.defaultOptions, Dialog.defaultPromptOptions, options)
+      options = Object.assign({}, dialog.defaultOptions, dialog.defaultPromptOptions, options)
       options.message = '<label for="vex">' + options.label + '</label>'
       options.input = '<input name="vex" type="text" class="vex-dialog-prompt-input" placeholder="' + options.placeholder + '" value="' + options.value + '" />'
       var callback = options.callback
@@ -139,7 +149,7 @@ var Dialog = function (vex) {
   }
 }
 
-Dialog.buttons = {
+dialog.buttons = {
   YES: {
     text: 'OK',
     type: 'submit',
@@ -160,14 +170,14 @@ Dialog.buttons = {
   }
 }
 
-Dialog.defaultOptions = {
+dialog.defaultOptions = {
   callback: function () {},
   afterOpen: function () {},
   message: '',
   input: '',
   buttons: [
-    Dialog.buttons.YES,
-    Dialog.buttons.NO
+    dialog.buttons.YES,
+    dialog.buttons.NO
   ],
   showCloseButton: false,
   onSubmit: function (e) {
@@ -180,23 +190,23 @@ Dialog.defaultOptions = {
   focusFirstInput: true
 }
 
-Dialog.defaultAlertOptions = {
+dialog.defaultAlertOptions = {
   message: 'Alert',
   buttons: [
-    Dialog.buttons.YES
+    dialog.buttons.YES
   ]
 }
 
-Dialog.defaultPromptOptions = {
+dialog.defaultPromptOptions = {
   label: 'Prompt:',
   placeholder: '',
   value: ''
 }
 
-Dialog.defaultConfirmOptions = {
+dialog.defaultConfirmOptions = {
   message: 'Confirm'
 }
 
-Dialog.name = 'Dialog'
+dialog.name = 'dialog'
 
-module.exports = Dialog
+module.exports = dialog
