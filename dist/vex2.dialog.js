@@ -263,17 +263,36 @@ module.exports = serialize;
 },{}],2:[function(require,module,exports){
 var serialize = require('form-serialize')
 
+// Basic string to DOM function
+var stringToDom = function (str) {
+  var testEl = document.createElement('div')
+  testEl.innerHTML = str
+  if (testEl.childElementCount === 0) {
+    return document.createTextNode(str)
+  }
+  if (testEl.childElementCount === 1) {
+    return testEl.firstElementChild
+  }
+  var frag = document.createDocumentFragment()
+  // Appending the element from testEl will remove it from testEl.children,
+  // so we store the initial length of children and then always append the first child
+  for (var i = 0, len = testEl.children.length; i < len; i++) {
+    frag.appendChild(testEl.children[0])
+  }
+  return frag
+}
+
 var buildDialogForm = function (options) {
   var form = document.createElement('form')
   form.classList.add('vex-dialog-form')
 
   var message = document.createElement('div')
   message.classList.add('vex-dialog-message')
-  message.appendChild(options.message)
+  message.appendChild(options.message instanceof window.Node ? options.message : stringToDom(options.message))
 
   var input = document.createElement('div')
   input.classList.add('vex-dialog-input')
-  input.appendChild(options.input)
+  input.appendChild(options.input instanceof window.Node ? options.input : stringToDom(options.input))
 
   form.appendChild(message)
   form.appendChild(input)
@@ -370,11 +389,14 @@ var Dialog = function (vex) {
       if (typeof options === 'string') {
         throw new Error('Dialog.prompt(options) requires options.callback.')
       }
-      var variableDefaults = {
-        message: '<label for="vex">' + (options.label || 'Prompt:') + '</label>',
-        input: '<input name="vex" type="text" class="vex-dialog-prompt-input" placeholder="' + (options.placeholder || '') + '" value="' + (options.value || '') + '" />'
+      options = Object.assign({}, Dialog.defaultOptions, Dialog.defaultPromptOptions, options)
+      options.message = '<label for="vex">' + options.label + '</label>'
+      options.input = '<input name="vex" type="text" class="vex-dialog-prompt-input" placeholder="' + options.placeholder + '" value="' + options.value + '" />'
+      var callback = options.callback
+      options.callback = function (value) {
+        value = value[Object.keys(value)[0]]
+        callback(value)
       }
-      options = Object.assign({}, Dialog.defaultOptions, Dialog.defaultPromptOptions, options, variableDefaults)
       return this.open(options)
     }
   }
@@ -384,7 +406,10 @@ Dialog.buttons = {
   YES: {
     text: 'OK',
     type: 'submit',
-    className: 'vex-dialog-button-primary'
+    className: 'vex-dialog-button-primary',
+    click: function () {
+      this.value = true
+    }
   },
 
   NO: {
@@ -392,6 +417,7 @@ Dialog.buttons = {
     type: 'button',
     className: 'vex-dialog-button-secondary',
     click: function () {
+      this.value = false
       this.close()
     }
   }
@@ -400,8 +426,8 @@ Dialog.buttons = {
 Dialog.defaultOptions = {
   callback: function () {},
   afterOpen: function () {},
-  message: 'Message',
-  input: '<input name="vex" type="hidden" value="_vex-empty-value" />',
+  message: '',
+  input: '',
   buttons: [
     Dialog.buttons.YES,
     Dialog.buttons.NO
@@ -409,7 +435,9 @@ Dialog.defaultOptions = {
   showCloseButton: false,
   onSubmit: function (e) {
     e.preventDefault()
-    this.value = serialize(this.form, { hash: true })
+    if (this.options.input) {
+      this.value = serialize(this.form, { hash: true })
+    }
     return this.close()
   },
   focusFirstInput: true
@@ -422,7 +450,11 @@ Dialog.defaultAlertOptions = {
   ]
 }
 
-Dialog.defaultPromptOptions = {}
+Dialog.defaultPromptOptions = {
+  label: 'Prompt:',
+  placeholder: '',
+  value: ''
+}
 
 Dialog.defaultConfirmOptions = {
   message: 'Confirm'
