@@ -207,6 +207,6 @@ dialog.defaultConfirmOptions = {
   message: 'Confirm'
 }
 
-dialog.name = 'dialog'
+dialog.pluginName = 'dialog'
 
 module.exports = dialog
