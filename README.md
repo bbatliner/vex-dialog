@@ -2,6 +2,17 @@
 
 A dialog plugin for [vex2](https://github.com/bbatliner/vex2).  Replacement for the browser's `alert`, `confirm`, and `prompt.
 
+## Usage
+
+      <script src="./vex2.min.js"></script>
+      <script src="./vex2.safe-dialog.min.js"></script>
+      <script>
+      vex.registerPlugin(vexSafeDialog);
+      vex.dialog.alert('Hello no HTML!');
+      vex.dialog.alert('<b>Hello with HTML!</b>');
+      vex.dialog.alert({ unsafeMessage : '<b>Hello with unsafeMessage!</b>' });
+      </script> 
+
 ## API
 
 vex2-safe-dialog exposes three main methods:

@@ -1,13 +1,13 @@
 {
-  "name": "vex2-dialog",
-  "version": "2.0.1",
-  "description": "A vex2 plugin for drop-in alert, confirm, and prompt dialogs",
-  "author": "Brendan Batliner <brendan@omnipointment.com>",
+  "name": "vex2-safe-dialog",
+  "version": "3.0.0",
+  "description": "A vex2 plugin for alert, confirm, and prompt dialogs, HTML-escaping content by default",
+  "author": "Mark Stosberg <mark@rideamigos.com>",
   "license": "MIT",
-  "main": "dist/vex2.dialog.min.js",
+  "main": "dist/vex2.safe-dialog.min.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bbatliner/vex2-dialog"
+    "url": "https://github.com/RideAmigos/vex2-safe-dialog"
   },
   "dependencies": {
     "form-serialize": "latest"

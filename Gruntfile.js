@@ -4,11 +4,11 @@ module.exports = function (grunt) {
 
     browserify: {
       Dialog: {
-        src: 'src/vex2.dialog.js',
-        dest: 'dist/vex2.dialog.js',
+        src: 'src/vex2.safe-dialog.js',
+        dest: 'dist/vex2.safe-dialog.js',
         options: {
           browserifyOptions: {
-            'standalone': 'vexDialog'
+            'standalone': 'vexSafeDialog'
           }
         }
       }
@@ -16,10 +16,10 @@ module.exports = function (grunt) {
 
     uglify: {
       Dialog: {
-        src: 'dist/vex2.dialog.js',
-        dest: 'dist/vex2.dialog.min.js',
+        src: 'dist/vex2.safe-dialog.js',
+        dest: 'dist/vex2.safe-dialog.min.js',
         options: {
-          banner: '/*! vex2.dialog.min.js <%= pkg.version %> */\n',
+          banner: '/*! vex2.safe-dialog.min.js <%= pkg.version %> */\n',
           report: 'gzip'
         }
       }
