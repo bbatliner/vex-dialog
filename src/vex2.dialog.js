@@ -68,12 +68,28 @@ var buttonsToDOM = function (buttons) {
   return domButtons
 }
 
+// Given a string, escape any special HTML characters in it and return the escaped string.
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
 var dialog = function (vex) {
   // dialog plugin
   return {
     // Open
     open: function (opts) {
       var options = Object.assign({}, dialog.defaultOptions, opts)
+
+     // `message` is unsafe internally, so translate
+      if (options.unsafeMessage) {
+        options.message = options.unsafeMessage;
+      }
+      // safe default: HTML-escape the message before passing it throw
+      else if (options.message) {
+        options.message = escapeHtml(options.message);
+      }
 
       // Build the form from the options
       var form = options.content = buildDialogForm(options)
