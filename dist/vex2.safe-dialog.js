@@ -415,9 +415,13 @@ var dialog = function (vex) {
       if (typeof options === 'string') {
         throw new Error('dialog.prompt(options) requires options.callback.')
       }
-      options = Object.assign({}, dialog.defaultOptions, dialog.defaultPromptOptions, options)
-      options.message = '<label for="vex">' + options.label + '</label>'
-      options.input = '<input name="vex" type="text" class="vex-dialog-prompt-input" placeholder="' + options.placeholder + '" value="' + options.value + '" />'
+
+      defaultPromptOptions = {
+        unsafeMessage: "<label for=\"vex\">" + (escapeHtml(options.label) || 'Prompt:') + "</label>",
+        input: "<input name=\"vex\" type=\"text\" class=\"vex-dialog-prompt-input\" placeholder=\"" + (options.placeholder || '') + "\"  value=\"" + (options.value || '') + "\" />"
+      };
+      options = Object.assign({}, dialog.defaultOptions, defaultPromptOptions, options);
+
       var callback = options.callback
       options.callback = function (value) {
         value = value[Object.keys(value)[0]]
@@ -474,12 +478,6 @@ dialog.defaultAlertOptions = {
   buttons: [
     dialog.buttons.YES
   ]
-}
-
-dialog.defaultPromptOptions = {
-  label: 'Prompt:',
-  placeholder: '',
-  value: ''
 }
 
 dialog.defaultConfirmOptions = {
