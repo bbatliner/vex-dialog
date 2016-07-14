@@ -66,10 +66,16 @@ Explicitly use the `unsafeMessage` option instead when you need to pass raw HTML
 
 ### prompt
 
-Use a prompt when you need to collect a text value from the user.
+Use a prompt when you need to collect a text value from the user. Note that you use the *label* property here instead
+of *message*. The `message` will then get constructed like this:
+
+
+		message = "<label for=\"vex\">" + options.label || 'Prompt:') + "</label>";
+
+The `label` is expected to be plain text and will be HTML-escaped.
 
     vex.dialog.prompt({
-        message: 'What planet did the aliens come from?',
+        label: 'What planet did the aliens come from?',
         placeholder: 'Planet name',
         callback: function(value) {
             $('.demo-result-prompt').html('Callback value: <b>' + value + '</b>').show();
