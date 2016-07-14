@@ -69,10 +69,16 @@ var buttonsToDOM = function (buttons) {
 }
 
 // Given a string, escape any special HTML characters in it and return the escaped string.
+// Return empty string if the input is undefined
 function escapeHtml(str) {
-  var div = document.createElement('div');
-  div.appendChild(document.createTextNode(str));
-  return div.innerHTML;
+	if (typeof variable !== 'undefined') {
+		var div = document.createElement('div');
+		div.appendChild(document.createTextNode(str));
+		return div.innerHTML;
+	}
+  else {
+		return ''
+	}
 }
 
 var dialog = function (vex) {
