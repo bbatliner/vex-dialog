@@ -10,6 +10,7 @@
     "url": "https://github.com/RideAmigos/vex2-safe-dialog"
   },
   "dependencies": {
+    "domify": "^1.4.0",
     "form-serialize": "latest"
   },
   "devDependencies": {
