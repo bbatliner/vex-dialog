@@ -1,23 +1,5 @@
+var domify = require('domify')
 var serialize = require('form-serialize')
-
-// Basic string to DOM function
-var stringToDom = function (str) {
-  var testEl = document.createElement('div')
-  testEl.innerHTML = str
-  if (testEl.childElementCount === 0) {
-    return document.createTextNode(str)
-  }
-  if (testEl.childElementCount === 1) {
-    return testEl.firstElementChild
-  }
-  var frag = document.createDocumentFragment()
-  // Appending the element from testEl will remove it from testEl.children,
-  // so we store the initial length of children and then always append the first child
-  for (var i = 0, len = testEl.children.length; i < len; i++) {
-    frag.appendChild(testEl.children[0])
-  }
-  return frag
-}
 
 var buildDialogForm = function (options) {
   var form = document.createElement('form')
@@ -25,11 +7,11 @@ var buildDialogForm = function (options) {
 
   var message = document.createElement('div')
   message.classList.add('vex-dialog-message')
-  message.appendChild(options.message instanceof window.Node ? options.message : stringToDom(options.message))
+  message.appendChild(options.message instanceof window.Node ? options.message : domify(options.message))
 
   var input = document.createElement('div')
   input.classList.add('vex-dialog-input')
-  input.appendChild(options.input instanceof window.Node ? options.input : stringToDom(options.input))
+  input.appendChild(options.input instanceof window.Node ? options.input : domify(options.input))
 
   form.appendChild(message)
   form.appendChild(input)
