@@ -53,7 +53,7 @@ var buttonsToDOM = function (buttons) {
 // Given a string, escape any special HTML characters in it and return the escaped string.
 // Return empty string if the input is undefined
 function escapeHtml(str) {
-	if (typeof variable !== 'undefined') {
+	if (typeof str !== 'undefined') {
 		var div = document.createElement('div');
 		div.appendChild(document.createTextNode(str));
 		return div.innerHTML;
