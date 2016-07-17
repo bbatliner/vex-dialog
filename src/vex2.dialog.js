@@ -50,6 +50,16 @@ var buttonsToDOM = function (buttons) {
   return domButtons
 }
 
+var escapeHtml = function (str) {
+  if (typeof str !== 'undefined') {
+    var div = document.createElement('div')
+    div.appendChild(document.createTextNode(str))
+    return div.innerHTML
+  } else {
+    return ''
+  }
+}
+
 var plugin = function (vex) {
   // Define the API first
   var dialog = {
@@ -59,6 +69,14 @@ var plugin = function (vex) {
     // Open
     open: function (opts) {
       var options = Object.assign({}, this.defaultOptions, opts)
+
+      // `message` is unsafe internally, so translate
+      // safe default: HTML-escape the message before passing it through
+      if (options.unsafeMessage) {
+        options.message = options.unsafeMessage
+      } else if (options.message) {
+        options.message = escapeHtml(options.message)
+      }
 
       // Build the form from the options
       var form = options.content = buildDialogForm(options)
@@ -123,7 +141,7 @@ var plugin = function (vex) {
       }
       var defaults = Object.assign({}, this.defaultOptions, this.defaultPromptOptions)
       var dynamicDefaults = {
-        message: '<label for="vex">' + (options.label || defaults.label) + '</label>',
+        unsafeMessage: '<label for="vex">' + (escapeHtml(options.label) || defaults.label) + '</label>',
         input: '<input name="vex" type="text" class="vex-dialog-prompt-input" placeholder="' + (options.placeholder || defaults.placeholder) + '" value="' + (options.value || defaults.value) + '" />'
       }
       options = Object.assign(defaults, dynamicDefaults, options)
