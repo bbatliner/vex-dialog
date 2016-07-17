@@ -72,7 +72,7 @@ var plugin = function (vex) {
 
       // `message` is unsafe internally, so translate
       // safe default: HTML-escape the message before passing it through
-      if (options.unsafeMessage) {
+      if (options.unsafeMessage && !options.message) {
         options.message = options.unsafeMessage
       } else if (options.message) {
         options.message = escapeHtml(options.message)
