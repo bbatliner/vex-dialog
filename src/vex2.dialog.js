@@ -50,12 +50,15 @@ var buttonsToDOM = function (buttons) {
   return domButtons
 }
 
-var dialog = function (vex) {
-  // dialog plugin
-  return {
+var plugin = function (vex) {
+  // Define the API first
+  var dialog = {
+    // Plugin name
+    name: 'dialog',
+
     // Open
     open: function (opts) {
-      var options = Object.assign({}, dialog.defaultOptions, opts)
+      var options = Object.assign({}, this.defaultOptions, opts)
 
       // Build the form from the options
       var form = options.content = buildDialogForm(options)
@@ -100,7 +103,7 @@ var dialog = function (vex) {
           message: options
         }
       }
-      options = Object.assign({}, dialog.defaultOptions, dialog.defaultAlertOptions, options)
+      options = Object.assign({}, this.defaultOptions, this.defaultAlertOptions, options)
       return this.open(options)
     },
 
@@ -109,7 +112,7 @@ var dialog = function (vex) {
       if (typeof options === 'string') {
         throw new Error('dialog.confirm(options) requires options.callback.')
       }
-      options = Object.assign({}, dialog.defaultOptions, dialog.defaultConfirmOptions, options)
+      options = Object.assign({}, this.defaultOptions, this.defaultConfirmOptions, options)
       return this.open(options)
     },
 
@@ -118,9 +121,12 @@ var dialog = function (vex) {
       if (typeof options === 'string') {
         throw new Error('dialog.prompt(options) requires options.callback.')
       }
-      options = Object.assign({}, dialog.defaultOptions, dialog.defaultPromptOptions, options)
-      options.message = '<label for="vex">' + options.label + '</label>'
-      options.input = '<input name="vex" type="text" class="vex-dialog-prompt-input" placeholder="' + options.placeholder + '" value="' + options.value + '" />'
+      var defaults = Object.assign({}, this.defaultOptions, this.defaultPromptOptions)
+      var dynamicDefaults = {
+        message: '<label for="vex">' + (options.label || defaults.label) + '</label>',
+        input: '<input name="vex" type="text" class="vex-dialog-prompt-input" placeholder="' + (options.placeholder || defaults.placeholder) + '" value="' + (options.value || defaults.value) + '" />'
+      }
+      options = Object.assign(defaults, dynamicDefaults, options)
       var callback = options.callback
       options.callback = function (value) {
         value = value[Object.keys(value)[0]]
@@ -129,66 +135,67 @@ var dialog = function (vex) {
       return this.open(options)
     }
   }
-}
 
-dialog.buttons = {
-  YES: {
-    text: 'OK',
-    type: 'submit',
-    className: 'vex-dialog-button-primary',
-    click: function () {
-      this.value = true
-    }
-  },
+  // Now define any additional data that's not the direct dialog API
+  dialog.buttons = {
+    YES: {
+      text: 'OK',
+      type: 'submit',
+      className: 'vex-dialog-button-primary',
+      click: function () {
+        this.value = true
+      }
+    },
 
-  NO: {
-    text: 'Cancel',
-    type: 'button',
-    className: 'vex-dialog-button-secondary',
-    click: function () {
-      this.value = false
-      this.close()
+    NO: {
+      text: 'Cancel',
+      type: 'button',
+      className: 'vex-dialog-button-secondary',
+      click: function () {
+        this.value = false
+        this.close()
+      }
     }
   }
+
+  dialog.defaultOptions = {
+    callback: function () {},
+    afterOpen: function () {},
+    message: '',
+    input: '',
+    buttons: [
+      dialog.buttons.YES,
+      dialog.buttons.NO
+    ],
+    showCloseButton: false,
+    onSubmit: function (e) {
+      e.preventDefault()
+      if (this.options.input) {
+        this.value = serialize(this.form, { hash: true })
+      }
+      return this.close()
+    },
+    focusFirstInput: true
+  }
+
+  dialog.defaultAlertOptions = {
+    message: 'Alert',
+    buttons: [
+      dialog.buttons.YES
+    ]
+  }
+
+  dialog.defaultPromptOptions = {
+    label: 'Prompt:',
+    placeholder: '',
+    value: ''
+  }
+
+  dialog.defaultConfirmOptions = {
+    message: 'Confirm'
+  }
+
+  return dialog
 }
 
-dialog.defaultOptions = {
-  callback: function () {},
-  afterOpen: function () {},
-  message: '',
-  input: '',
-  buttons: [
-    dialog.buttons.YES,
-    dialog.buttons.NO
-  ],
-  showCloseButton: false,
-  onSubmit: function (e) {
-    e.preventDefault()
-    if (this.options.input) {
-      this.value = serialize(this.form, { hash: true })
-    }
-    return this.close()
-  },
-  focusFirstInput: true
-}
-
-dialog.defaultAlertOptions = {
-  message: 'Alert',
-  buttons: [
-    dialog.buttons.YES
-  ]
-}
-
-dialog.defaultPromptOptions = {
-  label: 'Prompt:',
-  placeholder: '',
-  value: ''
-}
-
-dialog.defaultConfirmOptions = {
-  message: 'Confirm'
-}
-
-dialog.pluginName = 'dialog'
-
-module.exports = dialog
+module.exports = plugin
