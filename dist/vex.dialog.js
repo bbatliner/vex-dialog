@@ -375,8 +375,8 @@ function str_serialize(result, key, value) {
 module.exports = serialize;
 
 },{}],3:[function(require,module,exports){
-var domify = require('domify')
-var serialize = require('form-serialize')
+var domify = require(1)
+var serialize = require(2)
 
 // Build DOM elements for the structure of the dialog
 var buildDialogForm = function buildDialogForm (options) {
@@ -612,5 +612,5 @@ var plugin = function plugin (vex) {
 
 module.exports = plugin
 
-},{"domify":1,"form-serialize":2}]},{},[3])(3)
+},{"1":1,"2":2}]},{},[3])(3)
 });
