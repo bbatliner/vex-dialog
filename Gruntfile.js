@@ -3,7 +3,7 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON('package.json'),
 
     browserify: {
-      Dialog: {
+      dialog: {
         src: 'src/vex.dialog.js',
         dest: 'dist/vex.dialog.js',
         options: {
@@ -15,7 +15,7 @@ module.exports = function (grunt) {
     },
 
     uglify: {
-      Dialog: {
+      dialog: {
         src: 'dist/vex.dialog.js',
         dest: 'dist/vex.dialog.min.js',
         options: {
