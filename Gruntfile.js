@@ -8,7 +8,8 @@ module.exports = function (grunt) {
         dest: 'dist/vex.dialog.js',
         options: {
           browserifyOptions: {
-            'standalone': 'vexDialog'
+            'standalone': 'vexDialog',
+            'plugin': 'bundle-collapser/plugin'
           }
         }
       }
