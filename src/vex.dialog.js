@@ -87,10 +87,11 @@ var plugin = function (vex) {
       // Override the before close callback to also pass the value of the form
       var beforeClose = options.beforeClose
       dialogInstance.options.beforeClose = function () {
-        options.callback(this.value || false)
-        if (beforeClose) {
-          beforeClose.call(this)
+        var shouldClose = beforeClose ? beforeClose() : true
+        if (shouldClose) {
+          options.callback(this.value || false)
         }
+        return shouldClose
       }.bind(dialogInstance)
 
       // Append buttons to form with correct context
