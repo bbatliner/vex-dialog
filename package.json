@@ -14,7 +14,6 @@
     "form-serialize": "0.7.1"
   },
   "devDependencies": {
-    "bundle-collapser": "1.2.1",
     "grunt": "1.0.1",
     "grunt-browserify": "5.0.0",
     "grunt-contrib-uglify": "1.0.1",
