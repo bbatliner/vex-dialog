@@ -1,7 +1,8 @@
 var domify = require('domify')
 var serialize = require('form-serialize')
 
-var buildDialogForm = function (options) {
+// Build DOM elements for the structure of the dialog
+var buildDialogForm = function buildDialogForm (options) {
   var form = document.createElement('form')
   form.classList.add('vex-dialog-form')
 
@@ -19,7 +20,8 @@ var buildDialogForm = function (options) {
   return form
 }
 
-var buttonsToDOM = function (buttons) {
+// Take an array of buttons (see the default buttons below) and turn them into DOM elements
+var buttonsToDOM = function buttonsToDOM (buttons) {
   var domButtons = document.createElement('div')
   domButtons.classList.add('vex-dialog-buttons')
 
@@ -50,7 +52,8 @@ var buttonsToDOM = function (buttons) {
   return domButtons
 }
 
-var escapeHtml = function (str) {
+// Use the DOM's HTML parsing to escape any dangerous strings
+var escapeHtml = function escapeHtml (str) {
   if (typeof str !== 'undefined') {
     var div = document.createElement('div')
     div.appendChild(document.createTextNode(str))
@@ -60,14 +63,14 @@ var escapeHtml = function (str) {
   }
 }
 
-var plugin = function (vex) {
+var plugin = function plugin (vex) {
   // Define the API first
   var dialog = {
     // Plugin name
     name: 'dialog',
 
     // Open
-    open: function (opts) {
+    open: function open (opts) {
       var options = Object.assign({}, this.defaultOptions, opts)
 
       // `message` is unsafe internally, so translate
@@ -84,13 +87,23 @@ var plugin = function (vex) {
       // Open the dialog
       var dialogInstance = vex.open(options)
 
+      // Quick comment - these options and appending buttons and everything
+      // would preferably be done _before_ opening the dialog. However, since
+      // they rely on the context of the vex instance, we have to do them
+      // after. A potential future fix would be to differentiate between
+      // a "created" vex instance and an "opened" vex instance, so any actions
+      // that rely on the specific context of the instance can do their stuff
+      // before opening the dialog on the page.
+
       // Override the before close callback to also pass the value of the form
       var beforeClose = options.beforeClose
-      dialogInstance.options.beforeClose = function () {
+      dialogInstance.options.beforeClose = function dialogBeforeClose () {
+        // Only call the callback once - when the validation in beforeClose, if present, is true
         var shouldClose = beforeClose ? beforeClose() : true
         if (shouldClose) {
           options.callback(this.value || false)
         }
+        // Return the result of beforeClose() to vex
         return shouldClose
       }.bind(dialogInstance)
 
@@ -117,6 +130,7 @@ var plugin = function (vex) {
 
     // Alert
     alert: function (options) {
+      // Allow string as message
       if (typeof options === 'string') {
         options = {
           message: options
@@ -146,8 +160,10 @@ var plugin = function (vex) {
         input: '<input name="vex" type="text" class="vex-dialog-prompt-input" placeholder="' + (options.placeholder || defaults.placeholder) + '" value="' + (options.value || defaults.value) + '" />'
       }
       options = Object.assign(defaults, dynamicDefaults, options)
+      // Pluck the value of the "vex" input field as the return value for prompt's callback
+      // More closely mimics "window.prompt" in that a single string is returned
       var callback = options.callback
-      options.callback = function (value) {
+      options.callback = function promptCallback (value) {
         value = value[Object.keys(value)[0]]
         callback(value)
       }
@@ -161,7 +177,7 @@ var plugin = function (vex) {
       text: 'OK',
       type: 'submit',
       className: 'vex-dialog-button-primary',
-      click: function () {
+      click: function yesClick () {
         this.value = true
       }
     },
@@ -170,7 +186,7 @@ var plugin = function (vex) {
       text: 'Cancel',
       type: 'button',
       className: 'vex-dialog-button-secondary',
-      click: function () {
+      click: function noClick () {
         this.value = false
         this.close()
       }
@@ -187,7 +203,7 @@ var plugin = function (vex) {
       dialog.buttons.NO
     ],
     showCloseButton: false,
-    onSubmit: function (e) {
+    onSubmit: function onDialogSubmit (e) {
       e.preventDefault()
       if (this.options.input) {
         this.value = serialize(this.form, { hash: true })
