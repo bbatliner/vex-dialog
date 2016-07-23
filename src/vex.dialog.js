@@ -82,7 +82,7 @@ var plugin = function plugin (vex) {
       }
 
       // Build the form from the options
-      var form = options.content = buildDialogForm(options)
+      var form = options.unsafeContent = buildDialogForm(options)
 
       // Open the dialog
       var dialogInstance = vex.open(options)
