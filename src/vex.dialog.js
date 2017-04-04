@@ -153,7 +153,10 @@ var plugin = function plugin (vex) {
       // More closely mimics "window.prompt" in that a single string is returned
       var callback = options.callback
       options.callback = function promptCallback (value) {
-        value = value[Object.keys(value)[0]]
+        if (typeof value === 'object') {
+          var keys = Object.keys(value)
+          value = keys.length ? value[keys[0]] : ''
+        }
         callback(value)
       }
       return this.open(options)
