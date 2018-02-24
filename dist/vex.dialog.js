@@ -1,4 +1,25 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.vexDialog = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.vexDialog = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
+'use strict';
+
+function deepcopy(value) {
+  if (!(!!value && typeof value == 'object')) {
+    return value;
+  }
+  if (Object.prototype.toString.call(value) == '[object Date]') {
+    return new Date(value.getTime());
+  }
+  if (Array.isArray(value)) {
+    return value.map(deepcopy);
+  }
+  var result = {};
+  Object.keys(value).forEach(
+    function(key) { result[key] = deepcopy(value[key]); });
+  return result;
+}
+
+module.exports = deepcopy;
+
+},{}],2:[function(require,module,exports){
 
 /**
  * Expose `parse`.
@@ -112,7 +133,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 // get successful control from form and assemble into object
 // http://www.w3.org/TR/html401/interact/forms.html#h-17.13.2
 
@@ -374,9 +395,12 @@ function str_serialize(result, key, value) {
 
 module.exports = serialize;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 var domify = require('domify')
 var serialize = require('form-serialize')
+var cloneDeep = require('deep-clone-simple')
+
+
 
 // Build DOM elements for the structure of the dialog
 var buildDialogForm = function buildDialogForm (options) {
@@ -437,7 +461,7 @@ var plugin = function plugin (vex) {
 
     // Open
     open: function open (opts) {
-      var options = Object.assign({}, this.defaultOptions, opts)
+      var options = Object.assign({}, cloneDeep(this.defaultOptions), opts)
 
       // `message` is unsafe internally, so translate
       // safe default: HTML-escape the message before passing it through
@@ -447,11 +471,31 @@ var plugin = function plugin (vex) {
         options.message = vex._escapeHtml(options.message)
       }
 
+      var defaultYES = 'OK';
+      var defaultNO = 'Cancel';
+
+
+
+     // options.buttons.YES.text = yestxt;
+
+      
       // Build the form from the options
       var form = options.unsafeContent = buildDialogForm(options)
 
       // Open the dialog
       var dialogInstance = vex.open(options)
+
+      var yestxt = options.yesText;
+      if(yestxt !== '')
+      {
+        options.buttons[0].text = yestxt;
+      }
+
+      var notxt = options.noText;
+      if(notxt !== '')
+      {
+        options.buttons[1].text = notxt;
+      }
 
       // Quick comment - these options and appending buttons and everything
       // would preferably be done _before_ opening the dialog. However, since
@@ -492,13 +536,14 @@ var plugin = function plugin (vex) {
 
       // For chaining
       return dialogInstance
+
     },
 
     // Alert
     alert: function (options) {
       // Allow string as message
       if (typeof options === 'string') {
-        options = {
+        options = { 
           message: options
         }
       }
@@ -511,7 +556,7 @@ var plugin = function plugin (vex) {
       if (typeof options !== 'object' || typeof options.callback !== 'function') {
         throw new Error('dialog.confirm(options) requires options.callback.')
       }
-      options = Object.assign({}, this.defaultOptions, this.defaultConfirmOptions, options)
+      options = Object.assign({}, cloneDeep(this.defaultOptions), cloneDeep(this.defaultConfirmOptions), options)
       return this.open(options)
     },
 
@@ -519,7 +564,7 @@ var plugin = function plugin (vex) {
     prompt: function (options) {
       if (typeof options !== 'object' || typeof options.callback !== 'function') {
         throw new Error('dialog.prompt(options) requires options.callback.')
-      }
+      }a
       var defaults = Object.assign({}, this.defaultOptions, this.defaultPromptOptions)
       var dynamicDefaults = {
         unsafeMessage: '<label for="vex">' + vex._escapeHtml(options.label || defaults.label) + '</label>',
@@ -567,6 +612,8 @@ var plugin = function plugin (vex) {
     afterOpen: function () {},
     message: '',
     input: '',
+    yesText: '',
+    noText: '',
     buttons: [
       dialog.buttons.YES,
       dialog.buttons.NO
@@ -601,5 +648,5 @@ var plugin = function plugin (vex) {
 
 module.exports = plugin
 
-},{"domify":1,"form-serialize":2}]},{},[3])(3)
+},{"deep-clone-simple":1,"domify":2,"form-serialize":3}]},{},[4])(4)
 });

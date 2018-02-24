@@ -1,5 +1,6 @@
 var domify = require('domify')
 var serialize = require('form-serialize')
+var cloneDeep = require('deep-clone-simple')
 
 // Build DOM elements for the structure of the dialog
 var buildDialogForm = function buildDialogForm (options) {
@@ -60,7 +61,7 @@ var plugin = function plugin (vex) {
 
     // Open
     open: function open (opts) {
-      var options = Object.assign({}, this.defaultOptions, opts)
+      var options = Object.assign({}, cloneDeep(this.defaultOptions), opts)
 
       // `message` is unsafe internally, so translate
       // safe default: HTML-escape the message before passing it through
@@ -75,6 +76,14 @@ var plugin = function plugin (vex) {
 
       // Open the dialog
       var dialogInstance = vex.open(options)
+
+      if (options.yesText !== '') {
+        options.buttons[0].text = options.yesText
+      }
+
+      if (options.noText !== '') {
+        options.buttons[1].text = options.noText
+      }
 
       // Quick comment - these options and appending buttons and everything
       // would preferably be done _before_ opening the dialog. However, since
@@ -125,7 +134,7 @@ var plugin = function plugin (vex) {
           message: options
         }
       }
-      options = Object.assign({}, this.defaultOptions, this.defaultAlertOptions, options)
+      options = Object.assign({}, cloneDeep(this.defaultOptions), cloneDeep(this.defaultAlertOptions), options)
       return this.open(options)
     },
 
@@ -134,7 +143,7 @@ var plugin = function plugin (vex) {
       if (typeof options !== 'object' || typeof options.callback !== 'function') {
         throw new Error('dialog.confirm(options) requires options.callback.')
       }
-      options = Object.assign({}, this.defaultOptions, this.defaultConfirmOptions, options)
+      options = Object.assign({}, cloneDeep(this.defaultOptions), cloneDeep(this.defaultConfirmOptions), options)
       return this.open(options)
     },
 
@@ -143,7 +152,7 @@ var plugin = function plugin (vex) {
       if (typeof options !== 'object' || typeof options.callback !== 'function') {
         throw new Error('dialog.prompt(options) requires options.callback.')
       }
-      var defaults = Object.assign({}, this.defaultOptions, this.defaultPromptOptions)
+      var defaults = Object.assign({}, cloneDeep(this.defaultOptions), cloneDeep(this.defaultPromptOptions))
       var dynamicDefaults = {
         unsafeMessage: '<label for="vex">' + vex._escapeHtml(options.label || defaults.label) + '</label>',
         input: '<input name="vex" type="text" class="vex-dialog-prompt-input" placeholder="' + vex._escapeHtml(options.placeholder || defaults.placeholder) + '" value="' + vex._escapeHtml(options.value || defaults.value) + '" />'
@@ -190,6 +199,8 @@ var plugin = function plugin (vex) {
     afterOpen: function () {},
     message: '',
     input: '',
+    yesText: '',
+    noText: '',
     buttons: [
       dialog.buttons.YES,
       dialog.buttons.NO
