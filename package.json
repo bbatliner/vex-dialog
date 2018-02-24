@@ -10,6 +10,7 @@
     "url": "https://github.com/bbatliner/vex-dialog"
   },
   "dependencies": {
+    "clone-deep": "^3.0.1",
     "domify": "1.4.0",
     "form-serialize": "0.7.1"
   },

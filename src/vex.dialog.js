@@ -1,5 +1,6 @@
 var domify = require('domify')
 var serialize = require('form-serialize')
+var cloneDeep = require('clone-deep')
 
 // Build DOM elements for the structure of the dialog
 var buildDialogForm = function buildDialogForm (options) {
@@ -60,7 +61,7 @@ var plugin = function plugin (vex) {
 
     // Open
     open: function open (opts) {
-      var options = Object.assign({}, this.defaultOptions, opts)
+      var options = Object.assign({}, cloneDeep{this.defaultOptions}, opts)
 
       // `message` is unsafe internally, so translate
       // safe default: HTML-escape the message before passing it through
@@ -70,11 +71,31 @@ var plugin = function plugin (vex) {
         options.message = vex._escapeHtml(options.message)
       }
 
+      var defaultYES = 'OK';
+      var defaultNO = 'Cancel';
+
+
+
+     // options.buttons.YES.text = yestxt;
+
+      
       // Build the form from the options
       var form = options.unsafeContent = buildDialogForm(options)
 
       // Open the dialog
       var dialogInstance = vex.open(options)
+
+      var yestxt = options.yesText;
+      if(yestxt !== '')
+      {
+        options.buttons[0].text = yestxt;
+      }
+
+      var notxt = options.noText;
+      if(notxt !== '')
+      {
+        options.buttons[1].text = notxt;
+      }
 
       // Quick comment - these options and appending buttons and everything
       // would preferably be done _before_ opening the dialog. However, since
@@ -115,13 +136,14 @@ var plugin = function plugin (vex) {
 
       // For chaining
       return dialogInstance
+
     },
 
     // Alert
     alert: function (options) {
       // Allow string as message
       if (typeof options === 'string') {
-        options = {
+        options = { 
           message: options
         }
       }
@@ -142,7 +164,7 @@ var plugin = function plugin (vex) {
     prompt: function (options) {
       if (typeof options !== 'object' || typeof options.callback !== 'function') {
         throw new Error('dialog.prompt(options) requires options.callback.')
-      }
+      }a
       var defaults = Object.assign({}, this.defaultOptions, this.defaultPromptOptions)
       var dynamicDefaults = {
         unsafeMessage: '<label for="vex">' + vex._escapeHtml(options.label || defaults.label) + '</label>',
@@ -190,6 +212,8 @@ var plugin = function plugin (vex) {
     afterOpen: function () {},
     message: '',
     input: '',
+    yesText: '',
+    noText: '',
     buttons: [
       dialog.buttons.YES,
       dialog.buttons.NO
