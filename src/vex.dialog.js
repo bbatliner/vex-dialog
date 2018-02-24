@@ -2,8 +2,6 @@ var domify = require('domify')
 var serialize = require('form-serialize')
 var cloneDeep = require('deep-clone-simple')
 
-
-
 // Build DOM elements for the structure of the dialog
 var buildDialogForm = function buildDialogForm (options) {
   var form = document.createElement('form')
@@ -73,30 +71,18 @@ var plugin = function plugin (vex) {
         options.message = vex._escapeHtml(options.message)
       }
 
-      var defaultYES = 'OK';
-      var defaultNO = 'Cancel';
-
-
-
-     // options.buttons.YES.text = yestxt;
-
-      
       // Build the form from the options
       var form = options.unsafeContent = buildDialogForm(options)
 
       // Open the dialog
       var dialogInstance = vex.open(options)
 
-      var yestxt = options.yesText;
-      if(yestxt !== '')
-      {
-        options.buttons[0].text = yestxt;
+      if (options.yesText !== '') {
+        options.buttons[0].text = options.yesText
       }
 
-      var notxt = options.noText;
-      if(notxt !== '')
-      {
-        options.buttons[1].text = notxt;
+      if (options.noText !== '') {
+        options.buttons[1].text = options.noText
       }
 
       // Quick comment - these options and appending buttons and everything
@@ -138,14 +124,13 @@ var plugin = function plugin (vex) {
 
       // For chaining
       return dialogInstance
-
     },
 
     // Alert
     alert: function (options) {
       // Allow string as message
       if (typeof options === 'string') {
-        options = { 
+        options = {
           message: options
         }
       }
@@ -166,7 +151,7 @@ var plugin = function plugin (vex) {
     prompt: function (options) {
       if (typeof options !== 'object' || typeof options.callback !== 'function') {
         throw new Error('dialog.prompt(options) requires options.callback.')
-      }a
+      }
       var defaults = Object.assign({}, cloneDeep(this.defaultOptions), cloneDeep(this.defaultPromptOptions))
       var dynamicDefaults = {
         unsafeMessage: '<label for="vex">' + vex._escapeHtml(options.label || defaults.label) + '</label>',
