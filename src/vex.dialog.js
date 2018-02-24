@@ -1,6 +1,8 @@
 var domify = require('domify')
 var serialize = require('form-serialize')
-var cloneDeep = require('clone-deep')
+var cloneDeep = require('deep-clone-simple')
+
+
 
 // Build DOM elements for the structure of the dialog
 var buildDialogForm = function buildDialogForm (options) {
@@ -61,7 +63,7 @@ var plugin = function plugin (vex) {
 
     // Open
     open: function open (opts) {
-      var options = Object.assign({}, cloneDeep{this.defaultOptions}, opts)
+      var options = Object.assign({}, cloneDeep(this.defaultOptions), opts)
 
       // `message` is unsafe internally, so translate
       // safe default: HTML-escape the message before passing it through
@@ -147,7 +149,7 @@ var plugin = function plugin (vex) {
           message: options
         }
       }
-      options = Object.assign({}, this.defaultOptions, this.defaultAlertOptions, options)
+      options = Object.assign({}, cloneDeep(this.defaultOptions), cloneDeep(this.defaultAlertOptions), options)
       return this.open(options)
     },
 
@@ -156,7 +158,7 @@ var plugin = function plugin (vex) {
       if (typeof options !== 'object' || typeof options.callback !== 'function') {
         throw new Error('dialog.confirm(options) requires options.callback.')
       }
-      options = Object.assign({}, this.defaultOptions, this.defaultConfirmOptions, options)
+      options = Object.assign({}, cloneDeep(this.defaultOptions), cloneDeep(this.defaultConfirmOptions), options)
       return this.open(options)
     },
 
@@ -165,7 +167,7 @@ var plugin = function plugin (vex) {
       if (typeof options !== 'object' || typeof options.callback !== 'function') {
         throw new Error('dialog.prompt(options) requires options.callback.')
       }a
-      var defaults = Object.assign({}, this.defaultOptions, this.defaultPromptOptions)
+      var defaults = Object.assign({}, cloneDeep(this.defaultOptions), cloneDeep(this.defaultPromptOptions))
       var dynamicDefaults = {
         unsafeMessage: '<label for="vex">' + vex._escapeHtml(options.label || defaults.label) + '</label>',
         input: '<input name="vex" type="text" class="vex-dialog-prompt-input" placeholder="' + vex._escapeHtml(options.placeholder || defaults.placeholder) + '" value="' + vex._escapeHtml(options.value || defaults.value) + '" />'

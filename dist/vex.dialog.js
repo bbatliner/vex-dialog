@@ -1,212 +1,25 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.vexDialog = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
 'use strict';
 
-/**
- * Module dependenices
- */
-
-var isObject = require('is-plain-object');
-var clone = require('shallow-clone');
-var typeOf = require('kind-of');
-var forOwn = require('for-own');
-
-/**
- * Recursively clone native types.
- */
-
-function cloneDeep(val, instanceClone) {
-  switch (typeOf(val)) {
-    case 'object':
-      return cloneObjectDeep(val, instanceClone);
-    case 'array':
-      return cloneArrayDeep(val, instanceClone);
-    default: {
-      return clone(val);
-    }
+function deepcopy(value) {
+  if (!(!!value && typeof value == 'object')) {
+    return value;
   }
-}
-
-function cloneObjectDeep(obj, instanceClone) {
-  if (isObject(obj) || (instanceClone === true && typeOf(obj) === 'object')) {
-    var res = {};
-    forOwn(obj, function(val, key) {
-      this[key] = cloneDeep(val, instanceClone);
-    }, res);
-    return res;
+  if (Object.prototype.toString.call(value) == '[object Date]') {
+    return new Date(value.getTime());
   }
-  if (typeof instanceClone === 'function') {
-    return instanceClone(obj);
+  if (Array.isArray(value)) {
+    return value.map(deepcopy);
   }
-  return obj;
+  var result = {};
+  Object.keys(value).forEach(
+    function(key) { result[key] = deepcopy(value[key]); });
+  return result;
 }
 
-function cloneArrayDeep(arr, instanceClone) {
-  var res = [];
-  for (var i = 0; i < arr.length; i++) {
-    res[i] = cloneDeep(arr[i], instanceClone);
-  }
-  return res;
-}
+module.exports = deepcopy;
 
-/**
- * Expose `cloneDeep`
- */
-
-module.exports = cloneDeep;
-
-},{"for-own":2,"is-plain-object":7,"kind-of":3,"shallow-clone":11}],2:[function(require,module,exports){
-/*!
- * for-own <https://github.com/jonschlinkert/for-own>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-'use strict';
-
-var forIn = require('for-in');
-var hasOwn = Object.prototype.hasOwnProperty;
-
-module.exports = function forOwn(obj, fn, thisArg) {
-  forIn(obj, function(val, key) {
-    if (hasOwn.call(obj, key)) {
-      return fn.call(thisArg, obj[key], key, obj);
-    }
-  });
-};
-
-},{"for-in":5}],3:[function(require,module,exports){
-var toString = Object.prototype.toString;
-
-module.exports = function kindOf(val) {
-  if (val === void 0) return 'undefined';
-  if (val === null) return 'null';
-
-  var type = typeof val;
-  if (type === 'boolean') return 'boolean';
-  if (type === 'string') return 'string';
-  if (type === 'number') return 'number';
-  if (type === 'symbol') return 'symbol';
-  if (type === 'function') {
-    return isGeneratorFn(val) ? 'generatorfunction' : 'function';
-  }
-
-  if (isArray(val)) return 'array';
-  if (isBuffer(val)) return 'buffer';
-  if (isArguments(val)) return 'arguments';
-  if (isDate(val)) return 'date';
-  if (isError(val)) return 'error';
-  if (isRegexp(val)) return 'regexp';
-
-  switch (ctorName(val)) {
-    case 'Symbol': return 'symbol';
-    case 'Promise': return 'promise';
-
-    // Set, Map, WeakSet, WeakMap
-    case 'WeakMap': return 'weakmap';
-    case 'WeakSet': return 'weakset';
-    case 'Map': return 'map';
-    case 'Set': return 'set';
-
-    // 8-bit typed arrays
-    case 'Int8Array': return 'int8array';
-    case 'Uint8Array': return 'uint8array';
-    case 'Uint8ClampedArray': return 'uint8clampedarray';
-
-    // 16-bit typed arrays
-    case 'Int16Array': return 'int16array';
-    case 'Uint16Array': return 'uint16array';
-
-    // 32-bit typed arrays
-    case 'Int32Array': return 'int32array';
-    case 'Uint32Array': return 'uint32array';
-    case 'Float32Array': return 'float32array';
-    case 'Float64Array': return 'float64array';
-  }
-
-  if (isGeneratorObj(val)) {
-    return 'generator';
-  }
-
-  // Non-plain objects
-  type = toString.call(val);
-  switch (type) {
-    case '[object Object]': return 'object';
-    // iterators
-    case '[object Map Iterator]': return 'mapiterator';
-    case '[object Set Iterator]': return 'setiterator';
-    case '[object String Iterator]': return 'stringiterator';
-    case '[object Array Iterator]': return 'arrayiterator';
-  }
-
-  // other
-  return type.slice(8, -1).toLowerCase().replace(/\s/g, '');
-};
-
-function ctorName(val) {
-  return val.constructor ? val.constructor.name : null;
-}
-
-function isArray(val) {
-  if (Array.isArray) return Array.isArray(val);
-  return val instanceof Array;
-}
-
-function isError(val) {
-  return val instanceof Error || (typeof val.message === 'string' && val.constructor && typeof val.constructor.stackTraceLimit === 'number');
-}
-
-function isDate(val) {
-  if (val instanceof Date) return true;
-  return typeof val.toDateString === 'function'
-    && typeof val.getDate === 'function'
-    && typeof val.setDate === 'function';
-}
-
-function isRegexp(val) {
-  if (val instanceof RegExp) return true;
-  return typeof val.flags === 'string'
-    && typeof val.ignoreCase === 'boolean'
-    && typeof val.multiline === 'boolean'
-    && typeof val.global === 'boolean';
-}
-
-function isGeneratorFn(name, val) {
-  return ctorName(name) === 'GeneratorFunction';
-}
-
-function isGeneratorObj(val) {
-  return typeof val.throw === 'function'
-    && typeof val.return === 'function'
-    && typeof val.next === 'function';
-}
-
-function isArguments(val) {
-  try {
-    if (typeof val.length === 'number' && typeof val.callee === 'function') {
-      return true;
-    }
-  } catch (err) {
-    if (err.message.indexOf('callee') !== -1) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * If you need to support Safari 5-7 (8-10 yr-old browser),
- * take a look at https://github.com/feross/is-buffer
- */
-
-function isBuffer(val) {
-  if (val.constructor && typeof val.constructor.isBuffer === 'function') {
-    return val.constructor.isBuffer(val);
-  }
-  return false;
-}
-
-},{}],4:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 
 /**
  * Expose `parse`.
@@ -320,25 +133,7 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],5:[function(require,module,exports){
-/*!
- * for-in <https://github.com/jonschlinkert/for-in>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-'use strict';
-
-module.exports = function forIn(obj, fn, thisArg) {
-  for (var key in obj) {
-    if (fn.call(thisArg, obj[key], key, obj) === false) {
-      break;
-    }
-  }
-};
-
-},{}],6:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 // get successful control from form and assemble into object
 // http://www.w3.org/TR/html401/interact/forms.html#h-17.13.2
 
@@ -600,187 +395,12 @@ function str_serialize(result, key, value) {
 
 module.exports = serialize;
 
-},{}],7:[function(require,module,exports){
-/*!
- * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-'use strict';
-
-var isObject = require('isobject');
-
-function isObjectObject(o) {
-  return isObject(o) === true
-    && Object.prototype.toString.call(o) === '[object Object]';
-}
-
-module.exports = function isPlainObject(o) {
-  var ctor,prot;
-
-  if (isObjectObject(o) === false) return false;
-
-  // If has modified constructor
-  ctor = o.constructor;
-  if (typeof ctor !== 'function') return false;
-
-  // If has modified prototype
-  prot = ctor.prototype;
-  if (isObjectObject(prot) === false) return false;
-
-  // If constructor does not have an Object-specific method
-  if (prot.hasOwnProperty('isPrototypeOf') === false) {
-    return false;
-  }
-
-  // Most likely a plain Object
-  return true;
-};
-
-},{"isobject":8}],8:[function(require,module,exports){
-/*!
- * isobject <https://github.com/jonschlinkert/isobject>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-'use strict';
-
-module.exports = function isObject(val) {
-  return val != null && typeof val === 'object' && Array.isArray(val) === false;
-};
-
-},{}],9:[function(require,module,exports){
-'use strict';
-
-var isObject = require('is-extendable');
-var forIn = require('for-in');
-
-module.exports = function mixin(target, objects) {
-  if (!isObject(target)) {
-    throw new TypeError('expected the first argument to be an object');
-  }
-
-  var len = arguments.length;
-  var idx = 0;
-
-  while (++idx < len) {
-    copy(target, arguments[idx]);
-  }
-  return target;
-};
-
-/**
- * copy properties from the source object to the
- * target object. We don't use `Object.keys` here, since
- * "mixin" also adds non-enumerable keys.
- *
- * @param  {*} `value`
- * @param  {String} `key`
- */
-
-function copy(target, obj) {
-  if (isObject(obj)) {
-    forIn(obj, function(value, key) {
-      target[key] = value;
-    });
-  }
-}
-
-},{"for-in":5,"is-extendable":10}],10:[function(require,module,exports){
-/*!
- * is-extendable <https://github.com/jonschlinkert/is-extendable>
- *
- * Copyright (c) 2015-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-'use strict';
-
-var isPlainObject = require('is-plain-object');
-
-module.exports = function isExtendable(val) {
-  return isPlainObject(val) || typeof val === 'function' || Array.isArray(val);
-};
-
-},{"is-plain-object":7}],11:[function(require,module,exports){
-/*!
- * shallow-clone <https://github.com/jonschlinkert/shallow-clone>
- *
- * Copyright (c) 2015-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-'use strict';
-
-var isObject = require('is-extendable');
-var mixin = require('mixin-object');
-var typeOf = require('kind-of');
-
-/**
- * Shallow copy an object, array or primitive.
- *
- * @param  {any} `val`
- * @return {any}
- */
-
-function clone(val) {
-  var type = typeOf(val);
-  if (clone.hasOwnProperty(type)) {
-    return clone[type](val);
-  }
-  return val;
-}
-
-clone.array = function cloneArray(arr) {
-  return arr.slice();
-};
-
-clone.date = function cloneDate(date) {
-  return new Date(+date);
-};
-
-clone.object = function cloneObject(obj) {
-  if (isObject(obj)) {
-    return mixin({}, obj);
-  } else {
-    return obj;
-  }
-};
-
-clone.map = function cloneMap(val) {
-  return new Map(val);
-};
-
-clone.regexp = function cloneRegExp(re) {
-  var flags = '';
-  flags += re.multiline ? 'm' : '';
-  flags += re.global ? 'g' : '';
-  flags += re.ignoreCase ? 'i' : '';
-  return new RegExp(re.source, flags);
-};
-
-clone.set = function cloneSet(val) {
-  return new Set(val);
-};
-
-/**
- * Expose `clone`
- */
-
-module.exports = clone;
-
-},{"is-extendable":12,"kind-of":13,"mixin-object":9}],12:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10,"is-plain-object":7}],13:[function(require,module,exports){
-arguments[4][3][0].apply(exports,arguments)
-},{"dup":3}],14:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 var domify = require('domify')
 var serialize = require('form-serialize')
-var cloneDeep = require('clone-deep')
+var cloneDeep = require('deep-clone-simple')
+
+
 
 // Build DOM elements for the structure of the dialog
 var buildDialogForm = function buildDialogForm (options) {
@@ -936,7 +556,7 @@ var plugin = function plugin (vex) {
       if (typeof options !== 'object' || typeof options.callback !== 'function') {
         throw new Error('dialog.confirm(options) requires options.callback.')
       }
-      options = Object.assign({}, this.defaultOptions, this.defaultConfirmOptions, options)
+      options = Object.assign({}, cloneDeep(this.defaultOptions), cloneDeep(this.defaultConfirmOptions), options)
       return this.open(options)
     },
 
@@ -1028,5 +648,5 @@ var plugin = function plugin (vex) {
 
 module.exports = plugin
 
-},{"clone-deep":1,"domify":4,"form-serialize":6}]},{},[14])(14)
+},{"deep-clone-simple":1,"domify":2,"form-serialize":3}]},{},[4])(4)
 });
